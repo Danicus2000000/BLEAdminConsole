@@ -1,7 +1,7 @@
-﻿using MySqlConnector;
-using System.Threading.Tasks;
+﻿using MySql.Data.MySqlClient;
 using System.Windows;
-using System.Collections.Generic;
+using System.Text.Json;
+using System.IO;
 namespace AdminConsole
 {
     /// <summary>
@@ -9,6 +9,7 @@ namespace AdminConsole
     /// </summary>
     public partial class MainWindow : Window
     {
+        private bool credentialsRead = true;
         public MainWindow()
         {
             InitializeComponent();
@@ -17,39 +18,38 @@ namespace AdminConsole
         {
 
         }
-        private static async Task<List<string>> GetOrganisations()
-        {
-            var builder = new MySqlConnectionStringBuilder
-            {
-                Server = "bledata.mysql.database.azure.com",
-                Database = "bledata",
-                UserID = "",
-                Password = "",
-                SslMode = MySqlSslMode.Required
-            };
-            List<string> returnTo = new List<string>();
-            using (var conn = new MySqlConnection(builder.ConnectionString))
-            {
-                await conn.OpenAsync();
-
-                using (var command = conn.CreateCommand())
-                {
-                    command.CommandText = "select organisationName from organisation";
-                    using (var reader = await command.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            returnTo.Add(reader.GetString(0));
-                        }
-                    }
-                }
-            }
-            return returnTo;
-        }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            organisation_cmb.Items.Add(GetOrganisations().Result);
+            (string username, string password) = readJsonFile("pass.json");
+            if (credentialsRead)
+            {
+                string connectionString = "Server=bledata.mysql.database.azure.com; " +
+                "Database=bledata; Uid=" + username + "; Pwd=" + password + ";";
+                using (MySqlConnection conn = new MySqlConnection(connectionString))
+                {
+                    conn.Open();
+                    MySqlCommand selectCommand = new MySqlCommand("SELECT organisationName FROM organisations", conn);
+                    MySqlDataReader results = selectCommand.ExecuteReader();
+                    while (results.Read())
+                    {
+                        organisation_cmb.Items.Add(results[0]);
+                    }
+                    organisation_cmb.SelectedIndex = 0;
+                }
+            }
+            
         }
+        private (string, string) readJsonFile(string fileName)
+        {
+            string text = File.ReadAllText(fileName);
+            user user = JsonSerializer.Deserialize<user>(text);
+            return (user.username, user.pass);
+        }
+    }
+    internal class user 
+    {
+        public string username { get; set; }
+        public string pass { get; set; }
     }
 }
