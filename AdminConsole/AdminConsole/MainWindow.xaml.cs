@@ -76,7 +76,7 @@ namespace AdminConsole
             organisationPassword_txt.Password = "";
             if (validPassword > 0)
             {
-                loggedInCompany = organisation_cmb.SelectedValue.ToString();
+                loggedInCompany = organisation_cmb.SelectedValue.ToString().Replace("'","\\'");
                 loadBeacons();
                 OrganisationPassword_lbl.Visibility = Visibility.Hidden;
                 organisation_cmb.Visibility = Visibility.Hidden;
@@ -124,7 +124,7 @@ namespace AdminConsole
             using (MySqlConnection conn = new MySqlConnection(connectionString))
             {
                 conn.Open();
-                MySqlCommand selectCommand = new MySqlCommand("SELECT BleDeviceTitle FROM bledevices WHERE BleDeviceOrganisation='" + loggedInCompany.ToString().Replace("'", "\\'") + "'",conn);
+                MySqlCommand selectCommand = new MySqlCommand("SELECT BleDeviceTitle FROM bledevices WHERE BleDeviceOrganisation='" + loggedInCompany + "'",conn);
                 MySqlDataReader results = selectCommand.ExecuteReader();
                 while (results.Read())
                 {
@@ -132,20 +132,28 @@ namespace AdminConsole
                 }
             }
             beacon_cmb.SelectedIndex = 0;
+            updateBeaconURL();
         }
         private void beacon_cmb_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
-            (string username, string password) = readJsonFile();
-            string connectionString = "Server=bledata.mysql.database.azure.com; " +
-            "Database=bledata; Uid=" + username + "; Pwd=" + password + ";";
-            using (MySqlConnection conn = new MySqlConnection(connectionString))
+            updateBeaconURL();
+        }
+        private void updateBeaconURL() 
+        {
+            if (beacon_cmb.Items.Count > 0)
             {
-                conn.Open();
-                MySqlCommand selectCommand = new MySqlCommand("SELECT BleDeviceUrlToPointTo FROM bledevices WHERE BleDeviceOrganisation='" + loggedInCompany.Replace("'", "\\'") + "' AND BleDeviceName='" + beacon_cmb.SelectedValue.ToString().Replace("'", "\\'") + "'", conn);
-                MySqlDataReader results = selectCommand.ExecuteReader();
-                while (results.Read())
+                (string username, string password) = readJsonFile();
+                string connectionString = "Server=bledata.mysql.database.azure.com; " +
+                "Database=bledata; Uid=" + username + "; Pwd=" + password + ";";
+                using (MySqlConnection conn = new MySqlConnection(connectionString))
                 {
-                    beaconURLActual_lbl.Content = results[0].ToString();
+                    conn.Open();
+                    MySqlCommand selectCommand = new MySqlCommand("SELECT BleDeviceUrlToPointTo FROM bledevices WHERE BleDeviceOrganisation='" + loggedInCompany + "' AND BleDeviceTitle='" + beacon_cmb.SelectedValue.ToString().Replace("'", "\\'") + "'", conn);
+                    MySqlDataReader results = selectCommand.ExecuteReader();
+                    while (results.Read())
+                    {
+                        beaconURLActual_lbl.Content = results[0].ToString();
+                    }
                 }
             }
         }
@@ -154,64 +162,49 @@ namespace AdminConsole
             //update database with new data
             string newBeaconTitle=beaconNewTitle_txt.Text;
             string newBeaconUrl = beaconNewURL_txt.Text;
+            if(newBeaconTitle=="" && newBeaconUrl=="")
+            {
+                MessageBox.Show("No Changes proposed!", "No input changes");
+                return;
+            }
+            string messageContent = "";
+            string messsageTitle = "";
+            string query = "";
             if (newBeaconTitle != "" & newBeaconUrl != "")
             {
-                MessageBoxResult messageResult = MessageBox.Show("Update beacon URL to be: " + newBeaconUrl + " and beacon Title to be: " + newBeaconTitle+" ?","Update beacon URL & Title?");
-                if (messageResult == MessageBoxResult.Yes) 
-                {
-                    (string username, string password) = readJsonFile();
-                    string connectionString = "Server=bledata.mysql.database.azure.com; " +
-                    "Database=bledata; Uid=" + username + "; Pwd=" + password + ";";
-                    using (MySqlConnection conn = new MySqlConnection(connectionString))
-                    {
-                        conn.Open();
-                        MySqlCommand selectCommand = new MySqlCommand("UPDATE bledevices SET BleDeviceUrlToPointTo='" + newBeaconUrl + "', BleDeviceTitle='"+newBeaconTitle+"' WHERE bleDeviceTitle='" + beacon_cmb.SelectedValue.ToString().Replace("'", "\\'") + "'", conn);
-                        selectCommand.ExecuteNonQuery();
-                    }
-                }
-                beacon_cmb.SelectedIndex = 1;
-                beacon_cmb.SelectedIndex = 0;
+                messageContent = "Update beacon URL to be: " + newBeaconUrl + " and beacon Title to be: " + newBeaconTitle + " ?";
+                messsageTitle = "Update beacon URL & Title?";
+                query= "UPDATE bledevices SET BleDeviceUrlToPointTo='" + newBeaconUrl + "', BleDeviceTitle='" + newBeaconTitle + "' WHERE bleDeviceTitle='" + beacon_cmb.SelectedValue.ToString().Replace("'", "\\'") + "' AND BleDeviceOrganisation='"+loggedInCompany+"'";
             }
             else if (newBeaconTitle != "")
             {
-                MessageBoxResult messageResult = MessageBox.Show("Update beacon Title to be: " + newBeaconTitle + " ?", "Update beacon Title?", MessageBoxButton.YesNo);
-                if (messageResult == MessageBoxResult.Yes)
-                {
-                    (string username, string password) = readJsonFile();
-                    string connectionString = "Server=bledata.mysql.database.azure.com; " +
-                    "Database=bledata; Uid=" + username + "; Pwd=" + password + ";";
-                    using (MySqlConnection conn = new MySqlConnection(connectionString))
-                    {
-                        conn.Open();
-                        MySqlCommand selectCommand = new MySqlCommand("UPDATE bledevices SET BleDeviceTitle='" + newBeaconTitle + "' WHERE bleDeviceTitle='" + beacon_cmb.SelectedValue.ToString().Replace("'", "\\'") + "'", conn);
-                        selectCommand.ExecuteNonQuery();
-                    }
-                }
-                beacon_cmb.SelectedIndex = 1;
-                beacon_cmb.SelectedIndex = 0;
+                messageContent = "Update beacon Title to be: " + newBeaconTitle + " ?";
+                messsageTitle = "Update beacon Title?";
+                query = "UPDATE bledevices SET BleDeviceTitle='" + newBeaconTitle + "' WHERE bleDeviceTitle='" + beacon_cmb.SelectedValue.ToString().Replace("'", "\\'") + "' AND BleDeviceOrganisation='" + loggedInCompany + "'";
             }
             else if (newBeaconUrl != "") 
             {
-                MessageBoxResult messageResult=MessageBox.Show("Update beacon URL to be: " + newBeaconUrl + " ?", "Update beacon URL?", MessageBoxButton.YesNo);
-                if (messageResult == MessageBoxResult.Yes)
-                {
-                    (string username, string password) = readJsonFile();
-                    string connectionString = "Server=bledata.mysql.database.azure.com; " +
-                    "Database=bledata; Uid=" + username + "; Pwd=" + password + ";";
-                    using (MySqlConnection conn = new MySqlConnection(connectionString))
-                    {
-                        conn.Open();
-                        MySqlCommand selectCommand = new MySqlCommand("UPDATE bledevices SET BleDeviceUrlToPointTo='"+newBeaconUrl+"' WHERE bleDeviceTitle='"+beacon_cmb.SelectedValue.ToString().Replace("'","\\'")+"'", conn);
-                        selectCommand.ExecuteNonQuery();
-                    }
-                }
-                beacon_cmb.SelectedIndex = 1;
-                beacon_cmb.SelectedIndex = 0;
+                messageContent = "Update beacon URL to be: " + newBeaconUrl + " ?";
+                messsageTitle = "Update beacon URL?";
+                query = "UPDATE bledevices SET BleDeviceUrlToPointTo='" + newBeaconUrl + "' WHERE bleDeviceTitle='" + beacon_cmb.SelectedValue.ToString().Replace("'", "\\'") + "' AND BleDeviceOrganisation='" + loggedInCompany + "'";
             }
-            else 
+            MessageBoxResult messageResult = MessageBox.Show(messageContent, messsageTitle, MessageBoxButton.YesNo);
+            if (messageResult == MessageBoxResult.Yes)
             {
-                MessageBox.Show("No Changes proposed!", "No input changes");
+                (string username, string password) = readJsonFile();
+                string connectionString = "Server=bledata.mysql.database.azure.com; " +
+                "Database=bledata; Uid=" + username + "; Pwd=" + password + ";";
+                using (MySqlConnection conn = new MySqlConnection(connectionString))
+                {
+                    conn.Open();
+                    MySqlCommand selectCommand = new MySqlCommand(query, conn);
+                    selectCommand.ExecuteNonQuery();
+                }
             }
+            loadBeacons();
+            beaconNewTitle_txt.Text = "";
+            beaconNewURL_txt.Text = "";
+            MessageBox.Show("Beacon Update Successful", "Update Complete");
         }
         private void logOut_btn_Click(object sender, RoutedEventArgs e)//when logout button is pressed return to login page
         {
