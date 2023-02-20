@@ -155,6 +155,14 @@ namespace AdminConsole
                         beaconURLActual_lbl.Content = results[0].ToString();
                     }
                 }
+                beaconURLActual_lbl.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+                Size s = beaconURLActual_lbl.DesiredSize;
+                if (s.Width > 20)
+                {
+                    beacon_cmb.Width = s.Width;
+                    beaconNewTitle_txt.Width = s.Width;
+                    beaconNewURL_txt.Width = s.Width;
+                }
             }
         }
         private void updateBeacon_btn_Click(object sender, RoutedEventArgs e)

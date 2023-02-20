@@ -5,40 +5,46 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AdminConsole"
         mc:Ignorable="d"
-        Title="BLE Attractions Admin Console" Height="450" Width="800" Loaded="Window_Loaded" ResizeMode="NoResize" WindowState="Maximized" WindowStyle="None">
+        Title="BLE Attractions Admin Console" Height="1080" Width="1920" Loaded="Window_Loaded" ResizeMode="NoResize" WindowState="Maximized" WindowStyle="None" Background="#FF439EC5">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="19*"></ColumnDefinition>
-            <ColumnDefinition Width="70*"/>
-            <ColumnDefinition Width="89*"></ColumnDefinition>
-            <ColumnDefinition Width="89*"></ColumnDefinition>
+            <ColumnDefinition Width="0.9*"/>
+            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="20"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition></RowDefinition>
-            <RowDefinition></RowDefinition>
-            <RowDefinition></RowDefinition>
+            <RowDefinition Height="0.55*"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="20"/>
         </Grid.RowDefinitions>
-        <ComboBox x:Name="beacon_cmb" Grid.Column="2" HorizontalAlignment="Center" Margin="0,38,0,0" Grid.Row="1" VerticalAlignment="Top" Width="247" Visibility="Hidden" SelectionChanged="beacon_cmb_SelectionChanged"/>
-        <Label x:Name="beacon_lbl" Content="Select a Beacon to modify:" HorizontalAlignment="Left" Margin="48,34,0,0" Grid.Row="1" VerticalAlignment="Top" Visibility="Hidden" Grid.Column="1"/>
-        <Label x:Name="beaconURL_lbl" Content="This Beacon currently points towards:" HorizontalAlignment="Left" Margin="50,65,0,0" Grid.Row="1" VerticalAlignment="Top" Visibility="Hidden" Grid.ColumnSpan="2"/>
-        <Label x:Name="beaconURLActual_lbl" HorizontalAlignment="Left" Margin="10,65,0,0" Grid.Row="1" VerticalAlignment="Top" Grid.Column="2" Height="Auto" Width="Auto" Content="" Visibility="Hidden"/>
-        <Label x:Name="organisation_lbl" Content="Select a organisation:" HorizontalAlignment="Left" Margin="75,8,0,0" Grid.Row="1" VerticalAlignment="Top" Grid.Column="1"/>
-        <ComboBox x:Name="organisation_cmb" Grid.Column="2" HorizontalAlignment="Center" Margin="0,10,0,0" Grid.Row="1" VerticalAlignment="Top" Width="247"/>
-        <Label x:Name="beaconNewTitle_lbl" Content="Enter a new name for the beacon:" HorizontalAlignment="Left" Margin="3,10,0,0" Grid.Row="2" VerticalAlignment="Top" Visibility="Hidden" Grid.Column="1"/>
-        <TextBox x:Name="beaconNewTitle_txt" Grid.Column="2" HorizontalAlignment="Center" Margin="0,14,0,0" Grid.Row="2" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="247" Visibility="Hidden"/>
-        <Label x:Name="beaconNewURL_lbl" Content="Enter a new URL for the beacon:" HorizontalAlignment="Left" Margin="7,36,0,0" Grid.Row="2" VerticalAlignment="Top" Visibility="Hidden" Grid.Column="1"/>
-        <TextBox x:Name="beaconNewURL_txt" Grid.Column="2" HorizontalAlignment="Center" Margin="0,40,0,0" Grid.Row="2" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="247" Visibility="Hidden"/>
-        <Button x:Name="updateBeacon_btn" Grid.Column="2" Content="Update Beacon" HorizontalAlignment="Left" Margin="15,84,0,0" Grid.Row="2" VerticalAlignment="Top" RenderTransformOrigin="0.27,-0.027" Click="updateBeacon_btn_Click" Visibility="Hidden"/>
-        <Label x:Name="titleLabel_lbl" Grid.Column="2" Content="BLE Attractions Admin Console" HorizontalAlignment="Center" Margin="0,57,0,0" VerticalAlignment="Top"/>
-        <Label x:Name="OrganisationPassword_lbl" Content="Enter Organisation Password:" HorizontalAlignment="Left" Margin="31,36,0,0" Grid.Row="1" VerticalAlignment="Top" Grid.Column="1"/>
-        <PasswordBox x:Name="organisationPassword_txt" Grid.Column="2" HorizontalAlignment="Center" Margin="0,40,0,0" Grid.Row="1"  PasswordChar="*" VerticalAlignment="Top" Width="246" KeyDown="organisationPassword_txt_KeyDown">
+
+        <Label x:Name="titleLabel_lbl"  Grid.Column="2" Content="BLE Attractions Admin Console" HorizontalAlignment="Left" Margin="36,-6,0,0" VerticalAlignment="Top"/>
+        <!--Login Area-->
+        <Label x:Name="organisation_lbl" Content="Select a organisation:" HorizontalAlignment="Left" Margin="75,8,0,0" Grid.Row="1" VerticalAlignment="Top" Grid.Column="1" Visibility="Visible"/>
+        <ComboBox x:Name="organisation_cmb" Grid.Column="2" HorizontalAlignment="Center" Margin="0,10,0,0" Grid.Row="1" VerticalAlignment="Top" Width="247" RenderTransformOrigin="0.514,0.65" Visibility="Visible"/>
+        <Label x:Name="OrganisationPassword_lbl" Content="Enter Organisation Password:" HorizontalAlignment="Left" Margin="35,36,0,0" Grid.Row="1" VerticalAlignment="Top" Grid.Column="1" Visibility="Visible"/>
+        <PasswordBox x:Name="organisationPassword_txt" Grid.Column="2" HorizontalAlignment="Center" Margin="0,40,0,0" Grid.Row="1"  PasswordChar="*" VerticalAlignment="Top" Width="250" KeyDown="organisationPassword_txt_KeyDown" Visibility="Visible">
             <PasswordBox.CommandBindings>
                 <CommandBinding Command="ApplicationCommands.Paste"
     CanExecute="CommandBinding_CanExecutePaste"/>
             </PasswordBox.CommandBindings>
         </PasswordBox>
-        <Button x:Name="login_btn" Grid.Column="2" Content="Log on" HorizontalAlignment="Left" Margin="25,80,0,0" Grid.Row="1" VerticalAlignment="Top" Click="login_btn_Click"/>
-        <Button x:Name="logOut_btn" Grid.Column="2" Content="Log Out" HorizontalAlignment="Left" Margin="209,84,0,0" Grid.Row="2" VerticalAlignment="Top" RenderTransformOrigin="0.27,-0.027" Visibility="Hidden" Click="logOut_btn_Click"/>
-        <Button x:Name="exit_btn" Grid.Column="2" Content="Exit" HorizontalAlignment="Left" Margin="197,80,0,0" Grid.Row="1" VerticalAlignment="Top" Click="exit_btn_Click"/>
+        <Button x:Name="login_btn" Grid.Column="2" Content="Log on" HorizontalAlignment="Left"  Grid.Row="2" VerticalAlignment="Top" Click="login_btn_Click" Height="24" Width="52" Margin="5,0,0,0" Visibility="Visible"/>
+        <Button x:Name="exit_btn" Grid.Column="2" Content="Exit" HorizontalAlignment="Left"  Grid.Row="2" VerticalAlignment="Top" Click="exit_btn_Click" Width="57" Height="24" Margin="189,1,0,0" Visibility="Visible"/>
+        <!--Beacon Update Area-->
+        <Label x:Name="beacon_lbl" Content="Select a Beacon to modify:" HorizontalAlignment="Left" Grid.Row="2" VerticalAlignment="Top" Grid.Column="1" Margin="57,1,0,0" Visibility="Hidden"/>
+        <ComboBox x:Name="beacon_cmb" Grid.Column="2" HorizontalAlignment="Center" Margin="0,3,0,0" Grid.Row="2" VerticalAlignment="Top" Width="247" SelectionChanged="beacon_cmb_SelectionChanged" Visibility="Hidden"/>
+        <Label x:Name="beaconURL_lbl" Content="This Beacon currently points towards:" HorizontalAlignment="Center" Grid.Row="2" VerticalAlignment="Top" Grid.Column="1" Margin="0,35,0,0" Visibility="Hidden"/>
+        <Label x:Name="beaconURLActual_lbl" HorizontalAlignment="Left" Margin="1,35,0,0" Grid.Row="2" VerticalAlignment="Top" Grid.Column="2" Height="Auto" Width="Auto" Content="" Visibility="Hidden"/>
+        <Label x:Name="beaconNewTitle_lbl" Content="Enter a new name for the beacon:" HorizontalAlignment="Left" Margin="19,0,0,0" Grid.Row="3" VerticalAlignment="Top" Grid.Column="1" Visibility="Hidden"/>
+        <TextBox x:Name="beaconNewTitle_txt" Grid.Column="2" HorizontalAlignment="Center" Margin="0,5,0,0" Grid.Row="3" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="250" Visibility="Hidden"/>
+        <Label x:Name="beaconNewURL_lbl" Content="Enter a new URL for the beacon:" HorizontalAlignment="Left"  Grid.Row="3" VerticalAlignment="Top" Grid.Column="1" RenderTransformOrigin="0.497,0.562" Visibility="Hidden" Margin="27,26,0,0"/>
+        <TextBox x:Name="beaconNewURL_txt" Grid.Column="2" HorizontalAlignment="Center"  Grid.Row="3" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="247" Margin="0,34,0,0" Visibility="Hidden"/>
+        <Button x:Name="updateBeacon_btn" Grid.Column="2" Content="Update Beacon" HorizontalAlignment="Left" Grid.Row="3" VerticalAlignment="Top" RenderTransformOrigin="0.27,-0.027" Click="updateBeacon_btn_Click" Margin="5,62,0,0" Visibility="Hidden"/>
+        <Button x:Name="logOut_btn" Grid.Column="2" Content="Log Out" HorizontalAlignment="Left"  Grid.Row="3" VerticalAlignment="Top" RenderTransformOrigin="0.27,-0.027" Click="logOut_btn_Click" Margin="199,62,0,0" Visibility="Hidden"/>
     </Grid>
 </Window>
