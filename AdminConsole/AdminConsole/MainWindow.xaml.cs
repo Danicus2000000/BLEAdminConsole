@@ -28,21 +28,28 @@ namespace AdminConsole
         }
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            organisation_cmb.Items.Clear();
-            (string username, string password) = readJsonFile();
-            string connectionString = "Server=bledata.mysql.database.azure.com; " +
-            "Database=bledata; Uid=" + username + "; Pwd=" + password + ";";
-            using (MySqlConnection conn = new MySqlConnection(connectionString))
+            try
             {
-                conn.Open();
-                MySqlCommand selectCommand = new MySqlCommand("SELECT organisationName FROM organisations", conn);
-                MySqlDataReader results = selectCommand.ExecuteReader();
-                while (results.Read())
+                organisation_cmb.Items.Clear();
+                (string username, string password) = readJsonFile();
+                string connectionString = "Server=bledata.mysql.database.azure.com; " +
+                "Database=bledata; Uid=" + username + "; Pwd=" + password + ";";
+                using (MySqlConnection conn = new MySqlConnection(connectionString))
                 {
-                    organisation_cmb.Items.Add(results[0]);
+                    conn.Open();
+                    MySqlCommand selectCommand = new MySqlCommand("SELECT organisationName FROM organisations", conn);
+                    MySqlDataReader results = selectCommand.ExecuteReader();
+                    while (results.Read())
+                    {
+                        organisation_cmb.Items.Add(results[0]);
+                    }
                 }
+                organisation_cmb.SelectedIndex = 0;
             }
-            organisation_cmb.SelectedIndex = 0;
+            catch (MySqlException) 
+            {
+                MessageBox.Show("Timeout Occured", "Timeout Error");
+            }
         }
         private void organisationPassword_txt_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
@@ -58,56 +65,63 @@ namespace AdminConsole
         }
         private void login_btn_Click(object sender, RoutedEventArgs e)
         {
-            (string username, string password) = readJsonFile();
-            string connectionString = "Server=bledata.mysql.database.azure.com; " +
-            "Database=bledata; Uid=" + username + "; Pwd=" + password + ";";
-            int validPassword = 0;
-            using (MySqlConnection conn = new MySqlConnection(connectionString))
+            try
             {
-                conn.Open();
-                string passwordset = organisationPassword_txt.Password.ToString().Replace("'", "\\'");
-                MySqlCommand selectCommand = new MySqlCommand("SELECT COUNT(OrganisationName) FROM organisations WHERE OrganisationName='" + organisation_cmb.SelectedValue.ToString().Replace("'", "\\'") + "' AND OrganisationPassword='" + organisationPassword_txt.Password.ToString().Replace("'","\\'") + "'", conn);
-                MySqlDataReader results = selectCommand.ExecuteReader();
-                while (results.Read())
+                (string username, string password) = readJsonFile();
+                string connectionString = "Server=bledata.mysql.database.azure.com; " +
+                "Database=bledata; Uid=" + username + "; Pwd=" + password + ";";
+                int validPassword = 0;
+                using (MySqlConnection conn = new MySqlConnection(connectionString))
                 {
-                    validPassword = int.Parse(results[0].ToString());
+                    conn.Open();
+                    string passwordset = organisationPassword_txt.Password.ToString().Replace("'", "\\'");
+                    MySqlCommand selectCommand = new MySqlCommand("SELECT COUNT(OrganisationName) FROM organisations WHERE OrganisationName='" + organisation_cmb.SelectedValue.ToString().Replace("'", "\\'") + "' AND OrganisationPassword='" + organisationPassword_txt.Password.ToString().Replace("'", "\\'") + "'", conn);
+                    MySqlDataReader results = selectCommand.ExecuteReader();
+                    while (results.Read())
+                    {
+                        validPassword = int.Parse(results[0].ToString());
+                    }
+                }
+                organisationPassword_txt.Password = "";
+                if (validPassword > 0)
+                {
+                    loggedInCompany = organisation_cmb.SelectedValue.ToString().Replace("'", "\\'");
+                    loadBeacons();
+                    OrganisationPassword_lbl.Visibility = Visibility.Hidden;
+                    organisation_cmb.Visibility = Visibility.Hidden;
+                    organisationPassword_txt.Visibility = Visibility.Hidden;
+                    organisation_lbl.Visibility = Visibility.Hidden;
+                    login_btn.Visibility = Visibility.Hidden;
+                    exit_btn.Visibility = Visibility.Hidden;
+                    beacon_cmb.Visibility = Visibility.Visible;
+                    beacon_lbl.Visibility = Visibility.Visible;
+                    beaconURL_lbl.Visibility = Visibility.Visible;
+                    beaconURLActual_lbl.Visibility = Visibility.Visible;
+                    beaconNewURL_lbl.Visibility = Visibility.Visible;
+                    beaconNewURL_txt.Visibility = Visibility.Visible;
+                    beaconNewTitle_lbl.Visibility = Visibility.Visible;
+                    beaconNewTitle_txt.Visibility = Visibility.Visible;
+                    updateBeacon_btn.Visibility = Visibility.Visible;
+                    logOut_btn.Visibility = Visibility.Visible;
+                }
+                else if (loginAttmepts < 2)
+                {
+                    loginAttmepts++;
+                    MessageBox.Show("Invalid Password.\n" + (3 - loginAttmepts) + " login attempts remaining.", "Password Error");
+                }
+                else
+                {
+                    MessageBox.Show("You have been locked out of login attemtps for 1 minuite");
+                    loginAttmepts = 0;
+                    login_btn.Click -= login_btn_Click;
+                    timer.Interval = new System.TimeSpan(0, 1, 0);
+                    timer.Tick += reEnableLogin;
+                    timer.Start();
                 }
             }
-            organisationPassword_txt.Password = "";
-            if (validPassword > 0)
+            catch (MySqlException)
             {
-                loggedInCompany = organisation_cmb.SelectedValue.ToString().Replace("'","\\'");
-                loadBeacons();
-                OrganisationPassword_lbl.Visibility = Visibility.Hidden;
-                organisation_cmb.Visibility = Visibility.Hidden;
-                organisationPassword_txt.Visibility = Visibility.Hidden;
-                organisation_lbl.Visibility = Visibility.Hidden;
-                login_btn.Visibility = Visibility.Hidden;
-                exit_btn.Visibility = Visibility.Hidden;
-                beacon_cmb.Visibility = Visibility.Visible;
-                beacon_lbl.Visibility = Visibility.Visible;
-                beaconURL_lbl.Visibility = Visibility.Visible;
-                beaconURLActual_lbl.Visibility = Visibility.Visible;
-                beaconNewURL_lbl.Visibility = Visibility.Visible;
-                beaconNewURL_txt.Visibility = Visibility.Visible;
-                beaconNewTitle_lbl.Visibility = Visibility.Visible;
-                beaconNewTitle_txt.Visibility = Visibility.Visible;
-                updateBeacon_btn.Visibility = Visibility.Visible;
-                logOut_btn.Visibility = Visibility.Visible;
-            }
-            else if (loginAttmepts < 2)
-            {
-                loginAttmepts++;
-                MessageBox.Show("Invalid Password.\n" + (3 - loginAttmepts) + " login attempts remaining.", "Password Error");
-            }
-            else
-            {
-                MessageBox.Show("You have been locked out of login attemtps for 1 minuite");
-                loginAttmepts = 0;
-                login_btn.Click -= login_btn_Click;
-                timer.Interval = new System.TimeSpan(0, 1, 0);
-                timer.Tick += reEnableLogin;
-                timer.Start();
+                MessageBox.Show("Timeout Occured", "Timeout Error");
             }
         }
         private void reEnableLogin(object sender, EventArgs e)
@@ -117,22 +131,29 @@ namespace AdminConsole
         }
         private void loadBeacons()
         {
-            beacon_cmb.Items.Clear();
-            (string username, string password) = readJsonFile();
-            string connectionString = "Server=bledata.mysql.database.azure.com; " +
-            "Database=bledata; Uid=" + username + "; Pwd=" + password + ";";
-            using (MySqlConnection conn = new MySqlConnection(connectionString))
+            try
             {
-                conn.Open();
-                MySqlCommand selectCommand = new MySqlCommand("SELECT BleDeviceTitle FROM bledevices WHERE BleDeviceOrganisation='" + loggedInCompany + "'",conn);
-                MySqlDataReader results = selectCommand.ExecuteReader();
-                while (results.Read())
+                beacon_cmb.Items.Clear();
+                (string username, string password) = readJsonFile();
+                string connectionString = "Server=bledata.mysql.database.azure.com; " +
+                "Database=bledata; Uid=" + username + "; Pwd=" + password + ";";
+                using (MySqlConnection conn = new MySqlConnection(connectionString))
                 {
-                    beacon_cmb.Items.Add(results[0].ToString());
+                    conn.Open();
+                    MySqlCommand selectCommand = new MySqlCommand("SELECT BleDeviceTitle FROM bledevices WHERE BleDeviceOrganisation='" + loggedInCompany + "'", conn);
+                    MySqlDataReader results = selectCommand.ExecuteReader();
+                    while (results.Read())
+                    {
+                        beacon_cmb.Items.Add(results[0].ToString());
+                    }
                 }
+                beacon_cmb.SelectedIndex = 0;
+                updateBeaconURL();
             }
-            beacon_cmb.SelectedIndex = 0;
-            updateBeaconURL();
+            catch (MySqlException)
+            {
+                MessageBox.Show("Timeout Occured", "Timeout Error");
+            }
         }
         private void beacon_cmb_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
@@ -140,29 +161,36 @@ namespace AdminConsole
         }
         private void updateBeaconURL() 
         {
-            if (beacon_cmb.Items.Count > 0)
+            try
             {
-                (string username, string password) = readJsonFile();
-                string connectionString = "Server=bledata.mysql.database.azure.com; " +
-                "Database=bledata; Uid=" + username + "; Pwd=" + password + ";";
-                using (MySqlConnection conn = new MySqlConnection(connectionString))
+                if (beacon_cmb.Items.Count > 0)
                 {
-                    conn.Open();
-                    MySqlCommand selectCommand = new MySqlCommand("SELECT BleDeviceUrlToPointTo FROM bledevices WHERE BleDeviceOrganisation='" + loggedInCompany + "' AND BleDeviceTitle='" + beacon_cmb.SelectedValue.ToString().Replace("'", "\\'") + "'", conn);
-                    MySqlDataReader results = selectCommand.ExecuteReader();
-                    while (results.Read())
+                    (string username, string password) = readJsonFile();
+                    string connectionString = "Server=bledata.mysql.database.azure.com; " +
+                    "Database=bledata; Uid=" + username + "; Pwd=" + password + ";";
+                    using (MySqlConnection conn = new MySqlConnection(connectionString))
                     {
-                        beaconURLActual_lbl.Content = results[0].ToString();
+                        conn.Open();
+                        MySqlCommand selectCommand = new MySqlCommand("SELECT BleDeviceUrlToPointTo FROM bledevices WHERE BleDeviceOrganisation='" + loggedInCompany + "' AND BleDeviceTitle='" + beacon_cmb.SelectedValue.ToString().Replace("'", "\\'") + "'", conn);
+                        MySqlDataReader results = selectCommand.ExecuteReader();
+                        while (results.Read())
+                        {
+                            beaconURLActual_lbl.Content = results[0].ToString();
+                        }
+                    }
+                    beaconURLActual_lbl.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+                    Size s = beaconURLActual_lbl.DesiredSize;
+                    if (s.Width > 20)
+                    {
+                        beacon_cmb.Width = s.Width;
+                        beaconNewTitle_txt.Width = s.Width;
+                        beaconNewURL_txt.Width = s.Width;
                     }
                 }
-                beaconURLActual_lbl.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-                Size s = beaconURLActual_lbl.DesiredSize;
-                if (s.Width > 20)
-                {
-                    beacon_cmb.Width = s.Width;
-                    beaconNewTitle_txt.Width = s.Width;
-                    beaconNewURL_txt.Width = s.Width;
-                }
+            }
+            catch (MySqlException)
+            {
+                MessageBox.Show("Timeout Occured", "Timeout Error");
             }
         }
         private void updateBeacon_btn_Click(object sender, RoutedEventArgs e)
@@ -196,23 +224,30 @@ namespace AdminConsole
                 messsageTitle = "Update beacon URL?";
                 query = "UPDATE bledevices SET BleDeviceUrlToPointTo='" + newBeaconUrl + "' WHERE bleDeviceTitle='" + beacon_cmb.SelectedValue.ToString().Replace("'", "\\'") + "' AND BleDeviceOrganisation='" + loggedInCompany + "'";
             }
-            MessageBoxResult messageResult = MessageBox.Show(messageContent, messsageTitle, MessageBoxButton.YesNo);
-            if (messageResult == MessageBoxResult.Yes)
+            try
             {
-                (string username, string password) = readJsonFile();
-                string connectionString = "Server=bledata.mysql.database.azure.com; " +
-                "Database=bledata; Uid=" + username + "; Pwd=" + password + ";";
-                using (MySqlConnection conn = new MySqlConnection(connectionString))
+                MessageBoxResult messageResult = MessageBox.Show(messageContent, messsageTitle, MessageBoxButton.YesNo);
+                if (messageResult == MessageBoxResult.Yes)
                 {
-                    conn.Open();
-                    MySqlCommand selectCommand = new MySqlCommand(query, conn);
-                    selectCommand.ExecuteNonQuery();
+                    (string username, string password) = readJsonFile();
+                    string connectionString = "Server=bledata.mysql.database.azure.com; " +
+                    "Database=bledata; Uid=" + username + "; Pwd=" + password + ";";
+                    using (MySqlConnection conn = new MySqlConnection(connectionString))
+                    {
+                        conn.Open();
+                        MySqlCommand selectCommand = new MySqlCommand(query, conn);
+                        selectCommand.ExecuteNonQuery();
+                    }
                 }
+                loadBeacons();
+                beaconNewTitle_txt.Text = "";
+                beaconNewURL_txt.Text = "";
+                MessageBox.Show("Beacon Update Successful", "Update Complete");
             }
-            loadBeacons();
-            beaconNewTitle_txt.Text = "";
-            beaconNewURL_txt.Text = "";
-            MessageBox.Show("Beacon Update Successful", "Update Complete");
+            catch (MySqlException)
+            {
+                MessageBox.Show("Timeout Occured", "Timeout Error");
+            }
         }
         private void logOut_btn_Click(object sender, RoutedEventArgs e)//when logout button is pressed return to login page
         {
