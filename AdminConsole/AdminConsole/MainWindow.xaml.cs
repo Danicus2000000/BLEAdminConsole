@@ -48,7 +48,11 @@ namespace AdminConsole
             }
             catch (MySqlException) 
             {
-                MessageBox.Show("Timeout Occured", "Timeout Error");
+                MessageBoxResult result= MessageBox.Show("The Database could not be reached!", "Database connection error occured");
+                if(result == MessageBoxResult.OK) 
+                {
+                    Application.Current.Shutdown(0);
+                }
             }
         }
         private void organisationPassword_txt_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
@@ -206,7 +210,7 @@ namespace AdminConsole
             string messageContent = "";
             string messsageTitle = "";
             string query = "";
-            if (newBeaconTitle != "" & newBeaconUrl != "")
+            if (newBeaconTitle != "" && newBeaconUrl != "")
             {
                 messageContent = "Update beacon URL to be: " + newBeaconUrl + " and beacon Title to be: " + newBeaconTitle + " ?";
                 messsageTitle = "Update beacon URL & Title?";
